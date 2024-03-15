@@ -14,7 +14,7 @@ function App() {
       {user.currentUser ?
         <BrowserRouter>
           <Routes>
-            <Route index element={<LoginPage />} />
+            <Route index element={<BooksPage />} />
             <Route path="add-book" element={<AddBookPage />} />
             <Route path="book/:id" element={<SingleBookPage />} />
           </Routes>
