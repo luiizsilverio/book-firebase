@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { NavLink } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { useDispatch } from 'react-redux';
@@ -32,7 +33,7 @@ function Header({pageTitle}) {
 
           <NavLink to="/add-book">
             <button className="btn">
-                Cria Livro +
+                Criar Livro +
             </button>
           </NavLink>
 

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/config.js';
 
 
@@ -13,10 +13,26 @@ export const fetchBooks = createAsyncThunk('books/fetchBooks', async() => {
   return bookList;
 })
 
-export const toggleRead = createAsyncThunk('books/toggleRead', async() => {
-  
+export const toggleRead = createAsyncThunk('books/toggleRead', async(payload) => {
+  const bookRef = doc(db, "books", payload.id);
+  await updateDoc(bookRef, {
+    isRead: !payload.isRead
+  })
+  return payload.id
 })
 
+export const eraseBook = createAsyncThunk('books/eraseBook', async(payload) => {
+  await deleteDoc(doc(db, "books", payload));
+  return payload;
+})
+
+export const addBook = createAsyncThunk('books/addBook', async(payload) => {
+  const newBook = payload;
+  newBook.user_id = auth.currentUser.uid;
+  const docRef = await addDoc(collection(db, "books"), newBook);
+  newBook.id = docRef.id;
+  return newBook;
+})
 
 export const booksSlice = createSlice({
   name: 'books',
@@ -25,12 +41,12 @@ export const booksSlice = createSlice({
     status: 'idle'
   }, 
   reducers: {
-    addBook: (books, action) => {
+    addBook_OLD: (books, action) => {
       let newBook = action.payload;
       newBook.id = books.length ? Math.max(...books.map(book => book.id)) + 1 : 1;
       books.push(newBook);
     },
-    eraseBook: (books, action) => {
+    eraseBook_OLD: (books, action) => {
         return books.filter(book => book.id != action.payload);
     },
     toggleRead_OLD: (books, action) => {
@@ -49,16 +65,42 @@ export const booksSlice = createSlice({
     builder.addCase(fetchBooks.fulfilled, (state, action) => {
       state.status = 'success';
       state.books = action.payload;
-      // console.log('success!');
+      console.log('books OK');
     });
     builder.addCase(fetchBooks.rejected, (state, action) => {
+      state.status = 'failed';
+      console.log(action.error.message);
+    });
+    builder.addCase(toggleRead.fulfilled, (state, action) => {
+      // state.status = 'success';
+      state.books.map(book => {
+        if (book.id == action.payload) {
+          book.isRead = !book.isRead;
+        } 
+      })
+    });
+    builder.addCase(toggleRead.rejected, (state, action) => {
+      state.status = 'failed';
+      console.log(action.error.message);
+    });
+    builder.addCase(eraseBook.fulfilled, (state, action) => {
+      state.books = state.books.filter(book => book.id !== action.payload);
+    });
+    builder.addCase(eraseBook.rejected, (state, action) => {
+      state.status = 'failed';
+      console.log(action.error.message);
+    });
+    builder.addCase(addBook.fulfilled, (state, action) => {
+      state.books.push(action.payload);
+    });
+    builder.addCase(addBook.rejected, (state, action) => {
       state.status = 'failed';
       console.log(action.error.message);
     });
   }
 })
 
-export const { addBook, eraseBook } = booksSlice.actions;
+// export const { addBook } = booksSlice.actions;
 
 export const selectBooks = state => state.books;
 

@@ -12,14 +12,18 @@ function SingleBookPage() {
   function handleEraseBook(id) {
     if(confirm('Are you sure you want to erase this book and all notes associated with it?')){
       dispatch(eraseBook(id));
-      dispatch(eraseBookNotes(id));
+      // dispatch(eraseBookNotes(id));
       navigate("/");
     }
   }
 
+  function handleToggleRead(id, isRead) {
+    dispatch(toggleRead({ id, isRead }));
+  }
+
   const {id} = useParams();
 
-  const books = useSelector(selectBooks);
+  const books = useSelector(selectBooks).books;
 
   const book = books.filter(book => book.id == id)[0];
     
@@ -46,7 +50,7 @@ function SingleBookPage() {
                     <p>{book.synopsis}</p>
                     <div className="read-checkbox">
                         <input 
-                          onClick={()=>{dispatch(toggleRead(book.id))}}
+                          onClick={()=>handleToggleRead( book.id, book.isRead )}
                           type="checkbox" 
                           defaultChecked={book.isRead} />
                         <label>{ book.isRead ? "Already Read It" : "Haven't Read it yet" }</label>
