@@ -1,13 +1,20 @@
+import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { doc, getDoc } from 'firebase/firestore';
+
 import Notes from '../components/Notes.jsx';
-import {useSelector, useDispatch} from 'react-redux';
-import {selectBooks, eraseBook, toggleRead} from '../store/booksSlice.js';
-import {eraseBookNotes} from '../store/notesSlice.js';
+import {eraseBook, toggleRead} from '../store/booksSlice.js';
+import { db } from '../firebase/config.js';
 
 function SingleBookPage() {
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const {id} = useParams();
+  const [book, setBook] = useState(null);
+  const [status, setStatus] = useState("loading");
 
   function handleEraseBook(id) {
     if(confirm('Are you sure you want to erase this book and all notes associated with it?')){
@@ -19,14 +26,34 @@ function SingleBookPage() {
 
   function handleToggleRead(id, isRead) {
     dispatch(toggleRead({ id, isRead }));
+    setBook({ ...book, isRead: !isRead });
   }
 
-  const {id} = useParams();
+  async function fetchBook(book_id) {
+    try {
+      const docRef = doc(db, "books", book_id);
+      const docSnap = await getDoc(docRef);
 
-  const books = useSelector(selectBooks).books;
+      if (docSnap.exists()) {
+        setBook({ ...docSnap.data(), id: docSnap.id })
+      }
 
-  const book = books.filter(book => book.id == id)[0];
-    
+      setStatus("success");
+    } 
+    catch(err) {
+      console.log(err);
+      setStatus("error");
+    }
+  }
+
+  useEffect(() => {    
+    if (status == "loading") {
+      fetchBook(id);
+    }
+
+  }, [id, status]);
+  
+  
     return (
       <>
         <div className="container">
@@ -53,7 +80,7 @@ function SingleBookPage() {
                           onClick={()=>handleToggleRead( book.id, book.isRead )}
                           type="checkbox" 
                           defaultChecked={book.isRead} />
-                        <label>{ book.isRead ? "Already Read It" : "Haven't Read it yet" }</label>
+                        <label>{ book.isRead ? "Já leu" : "Ainda não leu" }</label>
                     </div>
                     <div onClick={()=>handleEraseBook(book.id)} className="erase-book">
                         Erase book
@@ -64,18 +91,27 @@ function SingleBookPage() {
               <Notes bookId={id} />
             </div> 
             
-            : 
+            : status == "success" ?
             
-            <div>
-              <p>Book not found. Click the button above to go back to the list of books.</p>
-            </div>
+              <div>
+                <p>Livro não encontrado. Clique no botão acima para voltar para a lista.</p>
+              </div>
+
+            : status == "error" ?
+
+              <div>
+                <p>Erro ao buscar o livro.</p>
+              </div>
+
+            :
+
+              <div>
+                <p>Aguarde...</p>
+              </div>
 
             }
-            
 
         </div>
-
-        
       </>
     )
   }

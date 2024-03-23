@@ -65,7 +65,6 @@ export const booksSlice = createSlice({
     builder.addCase(fetchBooks.fulfilled, (state, action) => {
       state.status = 'success';
       state.books = action.payload;
-      console.log('books OK');
     });
     builder.addCase(fetchBooks.rejected, (state, action) => {
       state.status = 'failed';
@@ -83,15 +82,25 @@ export const booksSlice = createSlice({
       state.status = 'failed';
       console.log(action.error.message);
     });
+    builder.addCase(eraseBook.pending, (state) => {
+      state.status = 'loading';
+      console.log('erasing book...');
+    });
     builder.addCase(eraseBook.fulfilled, (state, action) => {
       state.books = state.books.filter(book => book.id !== action.payload);
+      state.status = 'success';
     });
     builder.addCase(eraseBook.rejected, (state, action) => {
-      state.status = 'failed';
       console.log(action.error.message);
+      state.status = 'failed';
+    });
+    builder.addCase(addBook.pending, (state) => {
+      state.status = 'loading';
+      console.log('adding book...');
     });
     builder.addCase(addBook.fulfilled, (state, action) => {
       state.books.push(action.payload);
+      state.status = 'success';
     });
     builder.addCase(addBook.rejected, (state, action) => {
       state.status = 'failed';

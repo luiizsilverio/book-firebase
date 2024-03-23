@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 import Book from '../components/Book.jsx';
 import Header from '../components/Header.jsx';
@@ -22,18 +23,28 @@ function BooksPage() {
   return (
     <>
       <div className="container">
-          <Header pageTitle="📖 Book List with Router, Redux & Firebase" />
-          <div className="books-container">
-              <div className="books-list">
-                  
-                  {books.map(book => 
-                  
-                  <Book key={book.id} book={book}  />
-                  
-                  )}
+        <Header pageTitle="📖 Book List with Router, Redux & Firebase" />
+        <div className="books-container">
+          {
+            bookStatus == 'loading' 
+              ? 
+                <strong>Aguarde...</strong>
 
-              </div>
-          </div>
+              : books.length ? 
+                <div className="books-list">
+                  {
+                    books.map(book =>
+                      <Book key={book.id} book={book}  />
+                    )
+                  }
+                </div>
+
+              : 
+                <div>
+                  Sua lista de livros está fazia. <Link to="/add-book">Clique aqui</Link> para criar um livro.
+                </div>
+          }
+        </div>
       </div>
     </>
   )
