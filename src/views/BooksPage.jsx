@@ -23,7 +23,7 @@ function BooksPage() {
   return (
     <>
       <div className="container">
-        <Header pageTitle="📖 Book List with Router, Redux & Firebase" />
+        <Header pageTitle="Minha Biblioteca (Redux & Firebase)" />
         <div className="books-container">
           {
             bookStatus == 'loading' 
